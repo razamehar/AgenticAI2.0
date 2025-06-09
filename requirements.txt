@@ -7,3 +7,6 @@ langchain_core
 langchain_community
 wikipedia
 youtube_search
+langgraph
+chromadb
+pypdf
