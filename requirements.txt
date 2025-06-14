@@ -10,3 +10,13 @@ youtube_search
 langgraph
 chromadb
 pypdf
+pillow
+pdfplumber
+pymupdf
+openai
+tiktoken
+faiss-cpu
+langchain_groq
+langgraph
+chromadb
+langchain_tavily
