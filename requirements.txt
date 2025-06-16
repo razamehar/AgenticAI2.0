@@ -21,3 +21,4 @@ langgraph
 chromadb
 langchain_tavily
 duckduckgo-search
+amadeus
