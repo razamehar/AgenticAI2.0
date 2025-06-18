@@ -144,46 +144,59 @@ class TopAttractions:
 class Forex:
     """
     Tool to convert amounts from one currency to another using Fixer API.
-    Expects explicit arguments: amount, from_currency, to_currency.
+    Uses EUR as the base currency for conversion rates.
     """
 
     def __init__(self) -> None:
+        """
+        Initialize Forex tool with the Fixer API endpoint.
+        """
         self.latest_url = "http://data.fixer.io/api/latest"
 
     def get_rates(self) -> dict[str, float]:
+        """
+        Fetch the latest currency exchange rates from Fixer API.
+
+        Returns:
+            dict[str, float]: Mapping of currency codes to their rates relative to EUR.
+
+        Raises:
+            ValueError: If the API call is unsuccessful.
+        """
         params = {"access_key": FOREX_API_KEY}
         response = requests.get(self.latest_url, params=params)
         data = response.json()
         if data.get("success"):
             return data["rates"]
         else:
-            raise ValueError(f"Failed to fetch currency rates: {data.get('error')}")
+            raise ValueError("Failed to fetch currency rates")
 
-    def convert(
-        self,
-        amount: float,
-        from_currency: str,
-        to_currency: str
-    ) -> str:
+    def convert(self, amount: float, from_currency: str, to_currency: str) -> str:
         """
-        Convert amount from one currency to another.
+        Convert a given amount from one currency to another.
 
         Args:
             amount (float): The amount to convert.
-            from_currency (str): Currency code to convert from (e.g., "USD").
-            to_currency (str): Currency code to convert to (e.g., "EUR").
+            from_currency (str): The currency code to convert from (e.g., "USD").
+            to_currency (str): The currency code to convert to (e.g., "PKR").
 
         Returns:
-            str: Conversion result formatted nicely.
+            str: A formatted string showing the conversion result.
+
+        Notes:
+            If from_currency equals to_currency, returns the same amount.
+            Conversion is done via EUR as the base currency.
         """
         from_currency = from_currency.upper()
         to_currency = to_currency.upper()
 
+        if from_currency == to_currency:
+            return f"{amount:.2f} {from_currency} = {amount:.2f} {to_currency}"
+
         rates = self.get_rates()
-        if from_currency not in rates:
-            return f"Currency not supported: {from_currency}"
-        if to_currency not in rates:
-            return f"Currency not supported: {to_currency}"
+
+        if from_currency not in rates or to_currency not in rates:
+            return "Currency not supported"
 
         rate_from = rates[from_currency]
         rate_to = rates[to_currency]
@@ -191,26 +204,30 @@ class Forex:
         amount_in_eur = amount / rate_from
         converted_amount = amount_in_eur * rate_to
 
-        return (f"{amount} {from_currency} = {converted_amount:.2f} {to_currency} "
-                f"(Rates: 1 {from_currency} = {rate_from:.4f} EUR, "
-                f"1 {to_currency} = {rate_to:.4f} EUR)")
+        return f"{amount:.2f} {from_currency} = {converted_amount:.2f} {to_currency}"
 
     def __call__(
         self,
-        amount: Optional[float] = None,
-        from_currency: Optional[str] = None,
-        to_currency: Optional[str] = None,
+        amount: float,
+        from_currency: str,
+        to_currency: str,
     ) -> str:
         """
-        Accepts explicit params instead of parsing free text.
+        Make the Forex instance callable for convenient conversions.
+
+        Args:
+            amount (float): The amount to convert.
+            from_currency (str): The currency code to convert from.
+            to_currency (str): The currency code to convert to.
+
+        Returns:
+            str: The conversion result or an error message.
         """
-        if amount is None or from_currency is None or to_currency is None:
-            return "Please provide 'amount', 'from_currency', and 'to_currency' parameters."
-        
         try:
             return self.convert(amount, from_currency, to_currency)
         except Exception as e:
-            return f"Error during conversion: {e}"
+            return f"Error: {e}"
+
 
 
 @tool
