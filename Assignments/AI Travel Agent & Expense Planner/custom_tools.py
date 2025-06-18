@@ -141,30 +141,26 @@ class TopAttractions:
 
 
 @tool
-class Forex:
+class CurrencyExchange:
     """
-    Tool to convert amounts from one currency to another using Fixer API.
-    Uses EUR as the base currency for conversion rates.
+    Tool for converting amounts between currencies using the Fixer API.
+    All conversion rates are based on EUR as the base currency.
     """
-
-    def __init__(self) -> None:
-        """
-        Initialize Forex tool with the Fixer API endpoint.
-        """
-        self.latest_url = "http://data.fixer.io/api/latest"
 
     def get_rates(self) -> dict[str, float]:
         """
-        Fetch the latest currency exchange rates from Fixer API.
+        Fetches the latest exchange rates from the Fixer API with EUR as the base.
 
         Returns:
-            dict[str, float]: Mapping of currency codes to their rates relative to EUR.
+            dict[str, float]: A dictionary mapping currency codes to their exchange rates 
+            relative to EUR.
 
         Raises:
-            ValueError: If the API call is unsuccessful.
+            ValueError: If the API call fails or returns an unsuccessful response.
         """
         params = {"access_key": FOREX_API_KEY}
-        response = requests.get(self.latest_url, params=params)
+        self.url = "http://data.fixer.io/api/latest"
+        response = requests.get(self.url, params=params)
         data = response.json()
         if data.get("success"):
             return data["rates"]
@@ -173,19 +169,20 @@ class Forex:
 
     def convert(self, amount: float, from_currency: str, to_currency: str) -> str:
         """
-        Convert a given amount from one currency to another.
+        Converts a monetary amount from one currency to another using live exchange rates.
 
         Args:
-            amount (float): The amount to convert.
-            from_currency (str): The currency code to convert from (e.g., "USD").
-            to_currency (str): The currency code to convert to (e.g., "PKR").
+            amount (float): The amount of money to convert.
+            from_currency (str): The 3-letter currency code to convert from (e.g., "USD").
+            to_currency (str): The 3-letter currency code to convert to (e.g., "PKR").
 
         Returns:
-            str: A formatted string showing the conversion result.
+            str: A formatted string showing the converted amount.
 
         Notes:
-            If from_currency equals to_currency, returns the same amount.
-            Conversion is done via EUR as the base currency.
+            - If both currencies are the same, the original amount is returned unchanged.
+            - Conversion is done indirectly using EUR as the intermediary currency.
+            - If either currency is not supported, a message is returned indicating that.
         """
         from_currency = from_currency.upper()
         to_currency = to_currency.upper()
@@ -206,49 +203,31 @@ class Forex:
 
         return f"{amount:.2f} {from_currency} = {converted_amount:.2f} {to_currency}"
 
-    def __call__(
-        self,
-        amount: float,
-        from_currency: str,
-        to_currency: str,
-    ) -> str:
-        """
-        Make the Forex instance callable for convenient conversions.
-
-        Args:
-            amount (float): The amount to convert.
-            from_currency (str): The currency code to convert from.
-            to_currency (str): The currency code to convert to.
-
-        Returns:
-            str: The conversion result or an error message.
-        """
-        try:
-            return self.convert(amount, from_currency, to_currency)
-        except Exception as e:
-            return f"Error: {e}"
-
 
 
 @tool
 class Accommodation:
     """
-    Tool for retrieving hotel information including prices and addresses
-    in a specified city using DuckDuckGo search.
+    Tool for retrieving hotel information in a specified city.
+
+    This tool uses DuckDuckGo to search for hotels and returns key details such as 
+    ratings, prices, addresses, and official websites.
     """
 
     def hotel_info(self, city: str) -> list[str]:
         """
-        Search for hotels in the given city and return a list of formatted hotel entries.
+        Retrieves a list of hotels in the specified city with summarized information.
 
         Args:
-            city (str): The name of the city to search hotels in.
+            city (str): Name of the city to search for hotels in.
 
         Returns:
-            list[str]: A list of hotel info strings (title + snippet).
+            list[str]: A list of up to five formatted strings, each containing 
+                       the hotel's title and a brief description including 
+                       rating, price, address, and website if available.
         """
-        search = DuckDuckGoSearchResults()
-        query = f"Hotels with prices and addresses in {city}"
+        search = DuckDuckGoSearchResults(output_format="list")
+        query = f"Hotels with ratings, prices, addresses and websites in {city}"
         result = search.invoke(query)
 
         formatted_results = []
