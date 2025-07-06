@@ -23,3 +23,5 @@ langchain_tavily
 duckduckgo-search
 amadeus
 autogenstudio
+autogen-agentchat
+autogen-ext[openai]
