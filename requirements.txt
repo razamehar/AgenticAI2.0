@@ -25,3 +25,4 @@ amadeus
 autogenstudio
 autogen-agentchat
 autogen-ext[openai]
+autogen-ext[langchain]
